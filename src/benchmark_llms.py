@@ -1,4 +1,5 @@
 import json
+import time
 import argparse
 from pathlib import Path
 from .llm_translate import LlmTranslator
@@ -60,11 +61,12 @@ for dialect, data in data_by_dialect.items():
 # get LLM translations 
 results_by_dialect = {}
 for dialect, data in data_by_dialect.items():
+    print(f"Translating {dialect} dialect")
     src_lang = "Modern Standard Arabic" if args.reverse_source else f"{dialect} Arabic"
     tgt_lang = f"{dialect} Arabic" if args.reverse_source else "Modern Standard Arabic"
     
     results = []
-    for item in data:
+    for i, item in enumerate(data):
         src_text = item['target'] if args.reverse_source else item['source']   
         ref_text = item['source'] if args.reverse_source else item['target']  
 
@@ -88,6 +90,11 @@ for dialect, data in data_by_dialect.items():
             "comet_score": comet_score,
         }
         results.append(result)
+
+        if i % 5 == 0:
+            print(f"{i}/{len(data)} done")
+            if model_name == "gpt":
+                time.sleep(5)
 
     results_by_dialect[dialect] = results
 
