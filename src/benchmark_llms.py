@@ -72,21 +72,22 @@ for dialect, data in data_by_dialect.items():
         mt_text = llm_translator.postprocess(raw_output)
 
         # getting score for each sample for error analysis
-        # could do by corpus instead
         bleu_score = get_bleu_score(mt_text, [ref_text])
-        comet_score = get_comet_score({
+        comet_score = get_comet_score([{
             "src": src_text,
             "mt": mt_text,
             "ref": ref_text
-        })
+        }])
 
-        item.update({
+        result = {
+            "src_text": src_text,
+            "ref_text": ref_text,
             "llm_text_raw": raw_output,
             "llm_translation": mt_text,
             "bleu_score": bleu_score,
             "comet_score": comet_score,
-        })
-        results.append(item)
+        }
+        results.append(result)
 
     results_by_dialect[dialect] = results
 
@@ -97,8 +98,9 @@ with open(output_file, "w") as f:
 # perform dialect-level evaluation
 metrics_by_dialect = {}
 for dialect, results in results_by_dialect.items():
-    all_bleu_scores = [x["bleu_score"] for x in results]
-    corpus_bleu = sum(all_bleu_scores) / len(all_bleu_scores)
+    all_mt = [x["llm_translation"] for x in results]
+    all_refs = [[x["ref_text"]] for x in results]
+    corpus_bleu = get_bleu_score(all_mt, all_refs, corpus_level=True)
     
     all_comet_scores = [x["comet_score"] for x in results]
     corpus_comet = sum(all_comet_scores) / len(all_comet_scores)
