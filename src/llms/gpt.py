@@ -1,4 +1,5 @@
 import os
+import time
 import openai
 import backoff  # exponential backoff, to handle rate-limiting
 
@@ -8,7 +9,7 @@ openai.api_base = "https://arabic-dialects-llm-translation.openai.azure.com/"
 openai.api_version = "2023-09-15-preview"
 openai.api_key = os.getenv("OPENAI_API_KEY") 
 
-@backoff.on_exception(backoff.expo, openai.error.RateLimitError)
+# @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
 def request_gpt(prompt):
     try:
         response = openai.Completion.create(
@@ -23,8 +24,14 @@ def request_gpt(prompt):
         )
 
         return response["choices"][0]["text"]
+    
     except openai.error.InvalidRequestError: 
         return "Content filtered"
+    
+    except openai.error.RateLimitError: 
+        time.sleep(7)
+        return request_gpt(prompt)
+
 
 # cut off after newline (may need to do something more involved with other prompts)
 def postprocess(mt_text):

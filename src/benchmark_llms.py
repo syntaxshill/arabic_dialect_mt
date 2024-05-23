@@ -1,5 +1,4 @@
 import json
-import time
 import argparse
 from pathlib import Path
 from .llm_translate import LlmTranslator
@@ -93,8 +92,8 @@ for dialect, data in data_by_dialect.items():
 
         if i % 5 == 0:
             print(f"{i}/{len(data)} done")
-            if model_name == "gpt":
-                time.sleep(5)
+            # if model_name == "gpt":
+            #     time.sleep(5)
 
     results_by_dialect[dialect] = results
 
