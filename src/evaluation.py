@@ -13,7 +13,11 @@ If corpus-level:
     refs is a list of lists, one for each sample in sys.
 '''
 def get_bleu_score(sys, refs, corpus_level=False):
-    return bleu.corpus_score(sys, refs) if corpus_level else bleu.sentence_score(sys, refs)
+    if corpus_level:
+        return bleu.corpus_score(sys, refs).score
+    else:
+        bleu.effective_order = True
+        return bleu.sentence_score(sys, refs).score
 
 
 comet_checkpoint = download_model("Unbabel/wmt22-comet-da")
@@ -28,6 +32,6 @@ data = [
     }
 ]
 '''
-def comet_score(data, corpus_level=False):
+def get_comet_score(data, corpus_level=False):
     model_output = comet_model.predict(data, batch_size=8)
     return model_output.system_score if corpus_level else model_output.scores
