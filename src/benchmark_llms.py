@@ -5,6 +5,10 @@ import pandas as pd
 from tqdm import tqdm
 from .llm_translate import LlmTranslator
 from .evaluation import *
+import warnings 
+
+
+warnings.filterwarnings('ignore')
 
 
 def dir_path(path):
@@ -30,7 +34,7 @@ os.makedirs(output_dir, exist_ok=True)
 os.makedirs(metric_dir, exist_ok=True)
 
 model_name = "gpt" if args.gpt else "aya" if args.aya else "gemini"
-llm_translator = LlmTranslator(model_name)
+# llm_translator = LlmTranslator(model_name)
 
 # mode = "msa2dia" if args.reverse_source else "dia2msa"
 # print(f"Performing {mode} translation with {model_name}")
@@ -50,17 +54,19 @@ tqdm.pandas()
 #                                                                "Modern Standard Arabic"), axis=1)
 
 print("Evaluating")
-# df["comet"] = df.progress_apply(lambda row: get_comet_score([{
-#     "src": row["source"],
-#     "mt": row[model_name],
-#     "ref": row["target"]
-# }]), axis=1)
-# df["comet"] = df.progress_apply(lambda row: get_comet_score([row["source"]], [row[model_name]], [row["target"]]), axis=1)
+df["comet"] = df.progress_apply(lambda row: get_comet_score([{
+    "src": row["source"],
+    "mt": row[model_name],
+    "ref": row["target"]
+}]), axis=1)
+df["comet"] = df.progress_apply(lambda row: get_comet_score([row["source"]], [row[model_name]], [row["target"]]), axis=1)
+
 df["comet"] = get_comet_score(df["source"], df[model_name], df["target"])
 
 df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[model_name], [row["target"]]), axis=1)
 
 df.to_csv(output_file)
+
 
 print("Performing dialect-level evaluation")
 metrics_df = pd.DataFrame(columns=["corpus_bleu", "corpus_comet"])
@@ -70,7 +76,7 @@ for dialect in dialects:
     corpus_comet = dialect_df['comet'].mean()
 
     all_refs = [[x] for x in dialect_df['target']]
-    corpus_bleu = get_bleu_score(dialect_df['source'], all_refs, corpus_level=True)
+    corpus_bleu = get_bleu_score(dialect_df['source'].tolist(), all_refs, corpus_level=True)
     
     new_row = pd.DataFrame({
         "dialect": dialect,

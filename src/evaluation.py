@@ -32,7 +32,7 @@ def get_comet_score(source, hypothesis, reference, corpus_level=False):
         gpus=NO_OF_GPUs, 
         progress_bar=True
     )
-    return comet_score.mean_score if corpus_level else comet_score.scores
+    return comet_score["mean_score"] if corpus_level else comet_score["scores"]
 
 
 # comet_checkpoint = download_model("Unbabel/wmt22-comet-da")
