@@ -1,0 +1,22 @@
+{
+  "Egyptian": {
+    "bleu_score": 0.0,
+    "comet_score": 0.7757651154696942
+  },
+  "Iraqi": {
+    "bleu_score": 26.65837681702885,
+    "comet_score": 0.7196584647893906
+  },
+  "Levantine": {
+    "bleu_score": 10.682175159905853,
+    "comet_score": 0.7983689722418785
+  },
+  "Magharebi": {
+    "bleu_score": 9.652434877402245,
+    "comet_score": 0.7376953411847353
+  },
+  "Gulf": {
+    "bleu_score": 33.03164318013809,
+    "comet_score": 0.7568111596119345
+  }
+}

@@ -78,7 +78,7 @@ for dialect, data in data_by_dialect.items():
             "src": src_text,
             "mt": mt_text,
             "ref": ref_text
-        }])
+        }])[0]
 
         result = {
             "src_text": src_text,
@@ -92,8 +92,6 @@ for dialect, data in data_by_dialect.items():
 
         if i % 5 == 0:
             print(f"{i}/{len(data)} done")
-            # if model_name == "gpt":
-            #     time.sleep(5)
 
     results_by_dialect[dialect] = results
 
