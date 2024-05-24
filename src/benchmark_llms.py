@@ -1,6 +1,7 @@
-import json
+import pandas as pd
 import argparse
 from pathlib import Path
+import tqdm
 from .llm_translate import LlmTranslator
 from .evaluation import *
 
@@ -18,7 +19,7 @@ parser = argparse.ArgumentParser(description='Get translations using LLMs and op
 parser.add_argument('--data_file', help='Input data file.')
 parser.add_argument('--output_dir',type=dir_path,  help='Output data dir.')
 parser.add_argument('--metric_dir', type=dir_path, help='Metrics output dir.')
-parser.add_argument('--reverse_source', action='store_true', help='Whether to reverse source and target in inputs.')
+# parser.add_argument('--reverse_source', action='store_true', help='Whether to reverse source and target in inputs.')
 parser.add_argument('--gpt', action='store_true', help='Whether to use GPT 3.5 model (can only use one model).')
 parser.add_argument('--aya', action='store_true', help='Whether to use Aya model (can only use one model).')
 parser.add_argument('--gemini', action='store_true', help='Whether to use Gemini model (can only use one model).')
@@ -27,99 +28,49 @@ args = parser.parse_args()
 model_name = "gpt" if args.gpt else "aya" if args.aya else "gemini"
 llm_translator = LlmTranslator(model_name)
 
-mode = "msa2dia" if args.reverse_source else "dia2msa"
-print(f"Performing {mode} translation with {model_name}")
+# mode = "msa2dia" if args.reverse_source else "dia2msa"
+# print(f"Performing {mode} translation with {model_name}")
 
 input_filename = Path(args.data_file).stem
-output_filename = f"{model_name}_{mode}_{input_filename}.json"
+output_filename = f"{model_name}_{input_filename}.csv"
 output_file = args.output_dir / output_filename
 metric_file = args.metric_dir / output_filename
 
 # load data
-with open(args.data_file) as f:
-    data_raw = json.load(f)
+df = pd.read_csv(args.data_file)
+tqdm.pandas()
 
-# get all dialects
-dialects = set()
-for item in data_raw:
-    dialects.add(item["dialect"])
+print("Starting translation")
+df[model_name] = df.progress_apply(lambda row: llm_translator.translate(row["source"], 
+                                                               f'{row["dialect"]} Arabic', 
+                                                               "Modern Standard Arabic"), axis=1)
 
-# parse data and split by dialect for dialect-level statistics
-data_by_dialect = {}
-for item in data_raw:
-    dialect = item.pop("dialect")
+print("Evaluating")
+df["comet"] = df.progress_apply(lambda row: get_comet_score({
+    "src": row["source"],
+    "mt": row[model_name],
+    "ref": row["target"]
+}))
+
+df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[model_name], [row["target"]]))
+
+df.to_csv(output_file)
+
+print("Performing dialect-level evaluation")
+metrics_df = pd.DataFrame(columns=["corpus_bleu", "corpus_comet"])
+dialects = df.dialect.unique()
+for dialect in dialects:
+    dialect_df = df.loc[df['dialect'] == dialect]
+    corpus_comet = dialect_df['comet'].mean()
+
+    all_refs = [[x] for x in dialect_df['target']]
+    corpus_bleu = get_bleu_score(dialect_df['source'], all_refs, corpus_level=True)
     
-    if dialect not in data_by_dialect:
-        data_by_dialect[dialect] = [item]
-    else:
-        data_by_dialect[dialect] += [item]
+    new_row = pd.DataFrame({
+        "corpus_bleu": [corpus_bleu],
+        "corpus_comet": [corpus_comet]
+    })
 
-for dialect, data in data_by_dialect.items():
-    print(dialect, len(data))
-
-# get LLM translations 
-results_by_dialect = {}
-for dialect, data in data_by_dialect.items():
-    print(f"Translating {dialect} dialect")
-    src_lang = "Modern Standard Arabic" if args.reverse_source else f"{dialect} Arabic"
-    tgt_lang = f"{dialect} Arabic" if args.reverse_source else "Modern Standard Arabic"
+    metrics_df = pd.concat([metrics_df, new_row], ignore_index=True)
     
-    results = []
-    for i, item in enumerate(data):
-        src_text = item['target'] if args.reverse_source else item['source']   
-        ref_text = item['source'] if args.reverse_source else item['target']  
-
-        raw_output = llm_translator.translate(src_text, src_lang, tgt_lang, return_raw=True)
-        mt_text = llm_translator.postprocess(raw_output)
-
-        # getting score for each sample for error analysis
-        bleu_score = get_bleu_score(mt_text, [ref_text])
-        comet_score = get_comet_score([{
-            "src": src_text,
-            "mt": mt_text,
-            "ref": ref_text
-        }])[0]
-
-        result = {
-            "src_text": src_text,
-            "ref_text": ref_text,
-            "llm_text_raw": raw_output,
-            "llm_translation": mt_text,
-            "bleu_score": bleu_score,
-            "comet_score": comet_score,
-        }
-        results.append(result)
-
-        if i % 5 == 0:
-            print(f"{i}/{len(data)} done")
-
-    results_by_dialect[dialect] = results
-
-# save results
-with open(output_file, "w") as f:
-    json.dump(results_by_dialect, f, indent=2)
-
-# perform dialect-level evaluation
-metrics_by_dialect = {}
-for dialect, results in results_by_dialect.items():
-    all_mt = [x["llm_translation"] for x in results]
-    all_refs = [[x["ref_text"]] for x in results]
-    corpus_bleu = get_bleu_score(all_mt, all_refs, corpus_level=True)
-    
-    all_comet_scores = [x["comet_score"] for x in results]
-    corpus_comet = sum(all_comet_scores) / len(all_comet_scores)
-
-    metrics_by_dialect[dialect] = {
-        "bleu_score": corpus_bleu,
-        "comet_score": corpus_comet,
-    }
-
-# save metrics
-with open(metric_file, "w") as f:
-    json.dump(metrics_by_dialect, f, indent=2)
-
-
-
-
-
-
+metrics_df.to_csv(metric_file)
