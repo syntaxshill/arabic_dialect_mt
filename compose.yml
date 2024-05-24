@@ -1,0 +1,28 @@
+services:
+  run-aya:
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: "python -m src.benchmark_llms --data_file data/osact6_task2_test.csv --output_dir out --metric_dir metrics --aya"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0", "1"]
+              capabilities: [gpu]
+  test-cuda:
+    image: nvcr.io/nvidia/cuda:12.1.1-cudnn8-devel-ubuntu20.04
+    command: nvidia-smi
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

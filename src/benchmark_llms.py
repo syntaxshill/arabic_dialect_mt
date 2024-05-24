@@ -1,7 +1,8 @@
-import pandas as pd
 import argparse
+import os
 from pathlib import Path
-import tqdm
+import pandas as pd
+from tqdm import tqdm
 from .llm_translate import LlmTranslator
 from .evaluation import *
 
@@ -17,13 +18,16 @@ def dir_path(path):
 # to backtranslate MSA to dialects, so we need to reverse for evaluation
 parser = argparse.ArgumentParser(description='Get translations using LLMs and evaluate.')
 parser.add_argument('--data_file', help='Input data file.')
-parser.add_argument('--output_dir',type=dir_path,  help='Output data dir.')
-parser.add_argument('--metric_dir', type=dir_path, help='Metrics output dir.')
 # parser.add_argument('--reverse_source', action='store_true', help='Whether to reverse source and target in inputs.')
 parser.add_argument('--gpt', action='store_true', help='Whether to use GPT 3.5 model (can only use one model).')
 parser.add_argument('--aya', action='store_true', help='Whether to use Aya model (can only use one model).')
 parser.add_argument('--gemini', action='store_true', help='Whether to use Gemini model (can only use one model).')
 args = parser.parse_args()
+
+output_dir = Path("out/")
+metric_dir = Path("metrics")
+os.makedirs(output_dir, exist_ok=True)
+os.makedirs(metric_dir, exist_ok=True)
 
 model_name = "gpt" if args.gpt else "aya" if args.aya else "gemini"
 llm_translator = LlmTranslator(model_name)
@@ -33,26 +37,28 @@ llm_translator = LlmTranslator(model_name)
 
 input_filename = Path(args.data_file).stem
 output_filename = f"{model_name}_{input_filename}.csv"
-output_file = args.output_dir / output_filename
-metric_file = args.metric_dir / output_filename
+output_file = output_dir / output_filename
+metric_file = metric_dir / output_filename
 
 # load data
 df = pd.read_csv(args.data_file)
 tqdm.pandas()
 
-print("Starting translation")
-df[model_name] = df.progress_apply(lambda row: llm_translator.translate(row["source"], 
-                                                               f'{row["dialect"]} Arabic', 
-                                                               "Modern Standard Arabic"), axis=1)
+# print("Starting translation")
+# df[model_name] = df.progress_apply(lambda row: llm_translator.translate(row["source"], 
+#                                                                f'{row["dialect"]} Arabic', 
+#                                                                "Modern Standard Arabic"), axis=1)
 
 print("Evaluating")
-df["comet"] = df.progress_apply(lambda row: get_comet_score({
-    "src": row["source"],
-    "mt": row[model_name],
-    "ref": row["target"]
-}))
+# df["comet"] = df.progress_apply(lambda row: get_comet_score([{
+#     "src": row["source"],
+#     "mt": row[model_name],
+#     "ref": row["target"]
+# }]), axis=1)
+# df["comet"] = df.progress_apply(lambda row: get_comet_score([row["source"]], [row[model_name]], [row["target"]]), axis=1)
+df["comet"] = get_comet_score(df["source"], df[model_name], df["target"])
 
-df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[model_name], [row["target"]]))
+df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[model_name], [row["target"]]), axis=1)
 
 df.to_csv(output_file)
 

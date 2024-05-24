@@ -1,11 +1,16 @@
 import re
 import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+from pathlib import Path
+
+root = Path().cwd()
 
 
 # checkpoint = "CohereForAI/aya-101" 
 # aya_model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, device_map="auto", torch_dtype=torch.float16)
-checkpoint = "CohereForAI/aya-23-8B"
+# checkpoint = "CohereForAI/aya-23-8B"
+checkpoint = root / "models/aya-23-8b"
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 aya_model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map="auto", torch_dtype=torch.float16)
 
@@ -19,6 +24,7 @@ def aya_translate(prompt):
         do_sample=True, 
         temperature=0.1,
     )
+    # input_ids = input_ids.to(aya_model.device)
     prompt_len = len(input_ids[0])
     return tokenizer.decode(outputs[0][prompt_len:], skip_special_tokens=True)
 
