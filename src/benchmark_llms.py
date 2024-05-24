@@ -15,7 +15,7 @@ def dir_path(path):
 
 # OSACT6 task 2 is Dialect to MSA translation, but we are using LLMs 
 # to backtranslate MSA to dialects, so we need to reverse for evaluation
-parser = argparse.ArgumentParser(description='Get translations using LLMs and optionally evaluate.')
+parser = argparse.ArgumentParser(description='Get translations using LLMs and evaluate.')
 parser.add_argument('--data_file', help='Input data file.')
 parser.add_argument('--output_dir',type=dir_path,  help='Output data dir.')
 parser.add_argument('--metric_dir', type=dir_path, help='Metrics output dir.')
@@ -67,6 +67,7 @@ for dialect in dialects:
     corpus_bleu = get_bleu_score(dialect_df['source'], all_refs, corpus_level=True)
     
     new_row = pd.DataFrame({
+        "dialect": dialect,
         "corpus_bleu": [corpus_bleu],
         "corpus_comet": [corpus_comet]
     })
