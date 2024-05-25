@@ -10,7 +10,7 @@ services:
     working_dir: /workspace
     command: >
       bash -c "pip install google-generativeai &&
-                python -m src.benchmark_llms --data_file data/subtask_3_mono_MSA.txt --gemini"
+                python -m src.llm_backtranslation --data_file data/subtask_3_mono_MSA.txt --gemini"
   
   run-gemini:
     environment:

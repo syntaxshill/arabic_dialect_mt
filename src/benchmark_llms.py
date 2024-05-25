@@ -9,13 +9,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def dir_path(path):
-    if Path(path).exists and Path(path).is_dir():
-        return Path(path)
-    else:
-        raise NotADirectoryError(path)
-
-
 # OSACT6 task 2 is Dialect to MSA translation, but we are using LLMs 
 # to backtranslate MSA to dialects, so we need to reverse for evaluation
 parser = argparse.ArgumentParser(description='Get translations using LLMs and evaluate.')
