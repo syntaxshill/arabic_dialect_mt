@@ -53,16 +53,12 @@ tqdm.pandas()
 #                                                                f'{row["dialect"]} Arabic', 
 #                                                                "Modern Standard Arabic"), axis=1)
 
+# Drop untranslated samples (gpt had this)
+print(f"{sum(df[model_name].isna())} untranslated samples")
+df = df.dropna()
+
 print("Evaluating")
-df["comet"] = df.progress_apply(lambda row: get_comet_score([{
-    "src": row["source"],
-    "mt": row[model_name],
-    "ref": row["target"]
-}]), axis=1)
-df["comet"] = df.progress_apply(lambda row: get_comet_score([row["source"]], [row[model_name]], [row["target"]]), axis=1)
-
 df["comet"] = get_comet_score(df["source"], df[model_name], df["target"])
-
 df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[model_name], [row["target"]]), axis=1)
 
 df.to_csv(output_file)
