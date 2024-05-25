@@ -9,6 +9,12 @@ model = genai.GenerativeModel('gemini-pro')
 
 def request_gemini(prompt):
     response = model.generate_content(prompt)
-    return response.text
+    try:
+        return response.text
+    except:
+        print("Content filtered: ", prompt)
+        print(response.candidates[0].finish_reason)
+        print(response.candidates[0].safety_ratings)
+        return "Content filtered"
 
 # doesn't seem to need postprocessing!
