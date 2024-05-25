@@ -1,27 +1,40 @@
 services:
+  gemini-backtranslation:
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: >
+      bash -c "pip install google-generativeai &&
+                python -m src.benchmark_llms --data_file data/subtask_3_mono_MSA.txt --gemini"
+  
   run-gemini:
-        environment:
-          - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-        build:
-          context: .
-          dockerfile: Dockerfile
-        volumes:
-          - ./:/workspace
-        working_dir: /workspace
-        command: >
-          bash -c "pip install google-generativeai &&
-                   python -m src.benchmark_llms --data_file data/osact6_task2_test.csv --gemini"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: >
+      bash -c "pip install google-generativeai &&
+                python -m src.benchmark_llms --data_file data/osact6_task2_test.csv --gemini"
   
   run-gpt:
-      environment:
-        - OPENAI_API_KEY=${OPENAI_API_KEY}
-      build:
-        context: .
-        dockerfile: Dockerfile
-      volumes:
-        - ./:/workspace
-      working_dir: /workspace
-      command: "python -m src.benchmark_llms --data_file data/osact6_task2_test.csv --gpt"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: "python -m src.benchmark_llms --data_file data/osact6_task2_test.csv --gpt"
   
   run-aya:
     environment:
