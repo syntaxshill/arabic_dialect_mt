@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
-# from .llm_translate import LlmTranslator
+from .llm_translate import LlmTranslator
 from .evaluation import *
 import warnings 
 warnings.filterwarnings('ignore')
@@ -32,7 +32,7 @@ os.makedirs(output_dir, exist_ok=True)
 os.makedirs(metric_dir, exist_ok=True)
 
 model_name = "gpt" if args.gpt else "aya" if args.aya else "gemini"
-# llm_translator = LlmTranslator(model_name)
+llm_translator = LlmTranslator(model_name)
 
 # mode = "msa2dia" if args.reverse_source else "dia2msa"
 # print(f"Performing {mode} translation with {model_name}")
@@ -46,10 +46,10 @@ metric_file = metric_dir / output_filename
 df = pd.read_csv(args.data_file)
 tqdm.pandas()
 
-# print("Starting translation")
-# df[model_name] = df.progress_apply(lambda row: llm_translator.translate(row["source"], 
-#                                                                f'{row["dialect"]} Arabic', 
-#                                                                "Modern Standard Arabic"), axis=1)
+print("Starting translation")
+df[model_name] = df.progress_apply(lambda row: llm_translator.translate(row["source"], 
+                                                               f'{row["dialect"]} Arabic', 
+                                                               "Modern Standard Arabic"), axis=1)
 
 # Drop untranslated samples (gpt had 14)
 print(f"{sum(df[model_name].isna())} untranslated samples")
@@ -67,7 +67,7 @@ print("Performing dialect-level evaluation")
 # Drop content-filtered rows
 filtered_mask = df[model_name] == "Content filtered"
 print(f"Dropping {sum(filtered_mask)} filtered samples")
-df = df.loc[filtered_mask]
+df = df.loc[~filtered_mask]
 
 metrics_df = pd.DataFrame(columns=["dialect", "corpus_bleu", "corpus_comet"])
 dialects = df.dialect.unique()
@@ -77,13 +77,13 @@ for dialect in dialects:
 
     all_refs = [[x] for x in dialect_df['target']]
     corpus_bleu = get_bleu_score(dialect_df['source'].tolist(), all_refs, corpus_level=True)
-    
+
     new_row = pd.DataFrame({
         "dialect": dialect,
         "corpus_bleu": [corpus_bleu],
         "corpus_comet": [corpus_comet]
     })
 
-    metrics_df = pd.concat([metrics_df, new_row], ignore_index=True)
+    metrics_df = pd.concat([metrics_df, new_row])
     
-metrics_df.to_csv(metric_file)
+metrics_df.to_csv(metric_file, index=False)
