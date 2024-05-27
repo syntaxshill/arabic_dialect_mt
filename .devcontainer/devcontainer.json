@@ -20,6 +20,6 @@
     "mounts": [
         "source=${localEnv:HOME}/,target=/root/home",
         "source=${localEnv:HOME}/.config,target=/root/.config,type=bind,consistency=cached",
-        "source=${localWorkspaceHome}/models,target=${containerWorkspaceHome}/models"
+        "source=${localWorkspaceFolder}/models,target=${containerWorkspaceFolder}/models"
     ]
 }
