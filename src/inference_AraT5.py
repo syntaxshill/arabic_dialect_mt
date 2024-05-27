@@ -5,8 +5,8 @@ import pandas as pd
 from tqdm import tqdm
 
 
-tokenizer = AutoTokenizer.from_pretrained("checkpoints/1.1/checkpoint-160")
-model = AutoModelForSeq2SeqLM.from_pretrained("checkpoints/1.1/checkpoint-160").to("cuda")
+tokenizer = AutoTokenizer.from_pretrained("checkpoints/madar")
+model = AutoModelForSeq2SeqLM.from_pretrained("checkpoints/madar").to("cuda")
 
 
 def get_prefix(lang):
@@ -40,7 +40,6 @@ def predict(batch):
 
 
 osact = pd.read_csv("data/osact6_task2_test.csv")
-# Perform batch inference
 batch_size = 32
 osact["translation"] = ""
 
@@ -49,5 +48,4 @@ for i in tqdm(range(0, len(osact), batch_size)):
     translations = predict(batch)
     osact.loc[i:i+batch_size-1, "translation"] = translations
 
-osact.to_csv("data/osact_with_translations.csv", index=False)
-
+osact.to_csv("out/madar_osact_with_translations.csv", index=False)
