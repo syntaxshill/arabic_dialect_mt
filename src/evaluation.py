@@ -2,6 +2,36 @@
 from sacrebleu.metrics import BLEU
 from evaluate import load
 import torch
+import pandas as pd
+
+
+# takes a df and enriches with sentence-level evaluations
+def do_sentence_evals(df, mt_col="translation"):
+    df["comet"] = get_comet_score(df["source"], df[mt_col], df["target"])
+    df["bleu"] = df.progress_apply(lambda row: get_bleu_score(row[mt_col], [row["target"]]), axis=1)
+
+    return df
+
+
+# takes df and produces corpus-level metrics
+def do_aggregate_eval(df, mt_col="translation"):
+    if 'comet' in df.columns:
+        corpus_comet = df['comet'].mean()
+    else:
+        corpus_comet = get_comet_score(df["source"],
+                                       df[mt_col],
+                                       df["target"],
+                                       corpus_level=True)
+
+    all_refs = [[x] for x in df['target']]
+    corpus_bleu = get_bleu_score(df[mt_col].tolist(), all_refs, corpus_level=True)
+
+    metrics = {
+        "corpus_bleu": corpus_bleu,
+        "corpus_comet": corpus_comet
+    }
+
+    return metrics
 
 
 bleu = BLEU()
