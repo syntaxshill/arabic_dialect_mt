@@ -10,11 +10,16 @@
                 "ms-python.vscode-pylance",
                 "charliermarsh.ruff",
                 "ms-toolsai.jupyter-keymap"
-            ]
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "${localEnv:Home}/.pyenv/shims/python"
+            }
         }
     },
     "onCreateCommand": ["pip", "install", "-r", "requirements.txt"],
     "mounts": [
-        "source=${localEnv:HOME}/.config,target=/root/.config,type=bind,consistency=cached"
+        "source=${localEnv:HOME}/,target=/root/home",
+        "source=${localEnv:HOME}/.config,target=/root/.config,type=bind,consistency=cached",
+        "source=${localWorkspaceHome}/models,target=${containerWorkspaceHome}/models"
     ]
 }
