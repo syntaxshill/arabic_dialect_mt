@@ -1,6 +1,6 @@
 {
     "build": { 
-        "dockerfile": "../Dockerfile.paperspace" 
+        "dockerfile": "../Dockerfile" 
     },
     "runArgs": ["--gpus", "all"],
     "customizations": {
