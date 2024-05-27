@@ -12,14 +12,18 @@
                 "ms-toolsai.jupyter-keymap"
             ],
             "settings": {
-                "python.defaultInterpreterPath": "${localEnv:Home}/.pyenv/shims/python"
+                "python.defaultInterpreterPath": "/root/.pyenv/shims/python"
             }
         }
+    },
+    "containerEnv": {
+        "HF_TOKEN": "${localEnv:HF_TOKEN}"
     },
     "onCreateCommand": ["pip", "install", "-r", "requirements.txt"],
     "mounts": [
         "source=${localEnv:HOME}/.config,target=/root/.config,type=bind,consistency=cached",
-        "source=${localWorkspaceFolder}/models,target=${containerWorkspaceFolder}/models",
-        "source=${localWorkspaceFolder}/data,target=${containerWorkspaceFolder}/data"
+        "source=${localEnv:HOME}/.cache,target=/root/.cache,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/models,target=${containerWorkspaceFolder}/models,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/data,target=${containerWorkspaceFolder}/data,type=bind,consistency=cached"
     ]
 }

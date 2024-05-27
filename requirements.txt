@@ -1,5 +1,5 @@
 evaluate==0.4.2
-huggingface-hub==0.23.0
+huggingface-hub[cli]==0.23.0
 numpy==1.26.4
 openai==0.28.0
 pandas==2.2.2
