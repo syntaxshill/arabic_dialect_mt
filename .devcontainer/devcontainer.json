@@ -18,8 +18,9 @@
     },
     "onCreateCommand": ["pip", "install", "-r", "requirements.txt"],
     "mounts": [
-        "source=${localEnv:HOME}/,target=/root/home",
+        "source=${localEnv:HOME},target=/root/home",
         "source=${localEnv:HOME}/.config,target=/root/.config,type=bind,consistency=cached",
-        "source=${localWorkspaceFolder}/models,target=${containerWorkspaceFolder}/models"
+        "source=${localWorkspaceFolder}/models,target=${containerWorkspaceFolder}/models",
+        "source=${localWorkspaceFolder}/data,target=${containerWorkspaceFolder}/data"
     ]
 }
