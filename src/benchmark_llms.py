@@ -69,7 +69,7 @@ for dialect in dialects:
     corpus_comet = dialect_df['comet'].mean()
 
     all_refs = [[x] for x in dialect_df['target']]
-    corpus_bleu = get_bleu_score(dialect_df['source'].tolist(), all_refs, corpus_level=True)
+    corpus_bleu = get_bleu_score(dialect_df[model_name].tolist(), all_refs, corpus_level=True)
 
     new_row = pd.DataFrame({
         "dialect": dialect,
