@@ -57,7 +57,7 @@ def do_dialect_eval(df, mt_col="translation", all_dialects=False):
     return metrics_df
 
 
-bleu = BLEU()
+bleu = BLEU(effective_order=True)
 '''
 Returns sentence-level(default) or corpus level scores.
 If sentence-level:
