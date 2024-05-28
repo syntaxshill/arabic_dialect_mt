@@ -34,6 +34,29 @@ def do_aggregate_eval(df, mt_col="translation"):
     return metrics
 
 
+# Gets corpus level statistics for each dialect.
+# if all_dialects, then also evaluates the whole df.
+def do_dialect_eval(df, mt_col="translation", all_dialects=False):
+    metrics_df = pd.DataFrame(columns=["dialect", "corpus_bleu", "corpus_comet"])
+    dialects = df.dialect.unique()
+    for dialect in dialects:
+        dialect_df = df.loc[df['dialect'] == dialect]
+        
+        dialect_metrics = do_aggregate_eval(dialect_df, mt_col)
+        dialect_metrics["dialect"] = dialect
+
+        new_row = pd.DataFrame.from_records([dialect_metrics])
+        metrics_df = pd.concat([metrics_df, new_row])
+
+    if all_dialects:
+        metrics = do_aggregate_eval(df, mt_col)
+        metrics["dialect"] = "all"
+        new_row = pd.DataFrame.from_records([metrics])
+        metrics_df = pd.concat([metrics_df, new_row])
+
+    return metrics_df
+
+
 bleu = BLEU()
 '''
 Returns sentence-level(default) or corpus level scores.

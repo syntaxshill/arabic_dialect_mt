@@ -27,8 +27,6 @@ df.to_csv(args.input_file, index=False)
 print(f"Saved at {args.input_file}")
 
 print("Performing summary evaluation...")
-metrics = do_aggregate_eval(df)
-
-with open(metric_file, "w") as f:
-    json.dump(metrics, f)
+metrics_df = do_dialect_eval(df, all_dialects=True)   
+metrics_df.to_csv(metric_file, index=False)
 print(f"Saved at {metric_file}")

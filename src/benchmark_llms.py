@@ -60,15 +60,6 @@ filtered_mask = df[model_name] == "Content filtered"
 print(f"Dropping {sum(filtered_mask)} filtered samples")
 df = df.loc[~filtered_mask]
 
-metrics_df = pd.DataFrame(columns=["dialect", "corpus_bleu", "corpus_comet"])
-dialects = df.dialect.unique()
-for dialect in dialects:
-    dialect_df = df.loc[df['dialect'] == dialect]
-    
-    dialect_metrics = do_aggregate_eval(df, mt_col=model_name)
-    dialect_metrics["dialect"] = dialect
-
-    new_row = pd.DataFrame(dialect_metrics)
-    metrics_df = pd.concat([metrics_df, new_row])
+metrics_df = do_dialect_eval(df, mt_col=model_name, all_dialects=True)
     
 metrics_df.to_csv(metric_file, index=False)
