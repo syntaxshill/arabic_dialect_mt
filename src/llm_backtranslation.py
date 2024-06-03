@@ -6,7 +6,7 @@ from .llm_translate import LlmTranslator
 
 
 parser = argparse.ArgumentParser(description='Get translations from MSA to dialects using LLMs.')
-parser.add_argument('--data_file', help='Input data file.')
+parser.add_argument('data_file', help='Input data file.')
 parser.add_argument('--gpt', action='store_true', help='Whether to use GPT 3.5 model (can only use one model).')
 parser.add_argument('--aya', action='store_true', help='Whether to use Aya model (can only use one model).')
 parser.add_argument('--gemini', action='store_true', help='Whether to use Gemini model (can only use one model).')

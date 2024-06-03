@@ -1,6 +1,5 @@
 import argparse
 import os
-import json
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
