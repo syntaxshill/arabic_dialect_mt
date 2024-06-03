@@ -19,11 +19,9 @@ $ python -m src.benchmark_llms data_file [--gpt] [--aya] [--gemini]
 
 
 ## AraT5 translation and evaluation
-The following script performs translation using fine-tuned AraT5 model, then sentence-level evaluations and dialect-level evaluations.
+We uploaded each of our AraT5 trained checkpoints to huggingface hub, we employed a three-stage fine-tuning approach.
 
-We uploaded each of our AraT5 trained checkpoints to huggingface hub, we employed the three stage fine-tuning approach.
-
-To reproduce AraT5 results you can use the eval script for the three stages
+To reproduce AraT5 results you can use the eval script for each of the three stages
 
 ```shell
 $ python -m src.inference_AraT5 --model_name "ibrahimsharaf/AraT5_stage1" --input_data "data/osact6_task2_test.csv" --batch_size 32
